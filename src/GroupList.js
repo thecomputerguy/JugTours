@@ -68,7 +68,7 @@ class GroupList extends Component{
             <AppNavbar />
             <Container fluid>
                 <div className="float-right">
-                    <Button color="success" tag={Link} to={"/groups/new"}>Add Group</Button>
+                    <Button color="success" tag={Link} to={"/group/new"}>Add Group</Button>
                 </div>
                 <h3>My Jug Tour</h3>
                 <Table className="mt4">

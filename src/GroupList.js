@@ -2,20 +2,28 @@ import React, {Component} from 'react';
 import {Button, ButtonGroup, Container, Table} from 'reactstrap';
 import AppNavbar from './AppNavbar';
 import {Link} from 'react-router-dom';
+import { Cookies, withCookies } from 'react-cookie';
+import {instanceOf} from 'prop-types';
 
 class GroupList extends Component{
     
+    static propTypes = {
+        cookies: instanceOf(Cookies).isRequired,
+    };
+
     constructor(props){
         super(props);
-        this.state = {groups: [], isLoading: false};
+        const {cookies} = props;
+        this.state = {groups: [], csrfToken: cookies.get("XSRF-TOKEN"),  isLoading: false};
         this.remove = this.remove.bind(this);
     }
 
     componentDidMount(){
         this.setState({isLoading:true});
-        fetch("/api/groups")
+        fetch("/api/groups", {credentials: 'include'})
         .then(response => response.json())
-        .then(data => this.setState({groups: data, isLoading: false}));
+        .then(data => this.setState({groups: data, isLoading: false}))
+        .catch(() => this.props.history.push('/'));
     }
 
     async remove(id){
@@ -24,7 +32,9 @@ class GroupList extends Component{
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': this.state.csrfToken,
             },
+            credentials: 'include',
         }).then(() => {
             let updatedGroups = [...this.state.groups].filter(group => group.id !== id);
             this.setState({
@@ -88,4 +98,4 @@ class GroupList extends Component{
     }
 }
 
-export default GroupList;
+export default withCookies(GroupList);

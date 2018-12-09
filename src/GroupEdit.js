@@ -2,8 +2,14 @@ import React, {Component} from 'react';
 import {Link, withRouter} from 'react-router-dom';
 import AppNavbar from './AppNavbar';
 import {Button, Container, Form, FormGroup, Input, Label} from 'reactstrap';
+import {instanceOf} from 'prop-types';
+import { Cookies, withCookies } from 'react-cookie';
 
 class GroupEdit extends Component{
+
+    static propTypes = {
+        cookies: instanceOf(Cookies).isRequired,
+    };
 
     emptyItem = {
         name: '',
@@ -16,9 +22,10 @@ class GroupEdit extends Component{
 
     constructor(props){
         super(props);
-
+        const {cookies} = props;
         this.state = {
             item: this.emptyItem,
+            csrfToken: cookies.get('XSRF-TOKEN'),
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -26,7 +33,7 @@ class GroupEdit extends Component{
 
     async componentDidMount(){
         if(this.props.match.params.id !== 'new'){
-           const group = await fetch(`/api/group/${this.props.match.params.id}`).json();
+           const group = await fetch(`/api/group/${this.props.match.params.id}`, {credentials: 'include'}).json();
             this.setState({
                 item: group,
             });
@@ -46,14 +53,16 @@ class GroupEdit extends Component{
 
     async handleSubmit(event){
         event.preventDefault();
-        const {item} = this.state;
+        const {item, csrfToken} = this.state;
 
          await fetch("/api/group",{
             method: (item.id) ? 'PUT' : 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': csrfToken,
             },
+            credentials: 'include',
             body: JSON.stringify(item), 
         });
         this.props.history.push("/groups");
@@ -110,4 +119,4 @@ class GroupEdit extends Component{
     }
 }
 
-export default withRouter(GroupEdit);
+export default withCookies(withRouter(GroupEdit));
